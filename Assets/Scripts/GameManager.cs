@@ -9,7 +9,7 @@ public class GameManager : MonoBehaviour
 	[Header("UI References")]
 	[SerializeField] private GameObject _gameOverPanel;
 
-
+	private PlayerController _playerController;
 
 	private void Awake()
 	{
@@ -24,7 +24,6 @@ public class GameManager : MonoBehaviour
 		}
 	}
 
-	// Start is called once before the first execution of Update after the MonoBehaviour is created
 	void Start()
 	{
 		if (_gameOverPanel != null)
@@ -33,9 +32,14 @@ public class GameManager : MonoBehaviour
 		}
 
 		Time.timeScale = 1f;
+
+		_playerController = FindAnyObjectByType<PlayerController>();
+		if (_playerController == null)
+		{
+			Debug.LogError("PlayerController script not found in the scene! Make sure your Player object has the PlayerController component.");
+		}
 	}
 
-	// Update is called once per frame
 	void Update()
 	{
 		
@@ -43,14 +47,18 @@ public class GameManager : MonoBehaviour
 
 	public void GameOver()
 	{
-		
 		if (Time.timeScale > 0)
 		{
 			Debug.Log("Game over!");
 
 			if (_gameOverPanel != null)
 			{
-				_gameOverPanel.SetActive(true); 
+				_gameOverPanel.SetActive(true);
+			}
+
+			if (_playerController != null)
+			{
+				_playerController.StopPlayerMovement();
 			}
 
 			Time.timeScale = 0f;
@@ -59,7 +67,6 @@ public class GameManager : MonoBehaviour
 
 	public void RestartGame()
 	{
-
 
 		SceneManager.LoadScene(SceneManager.GetActiveScene().name);
 	}

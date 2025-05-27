@@ -10,18 +10,23 @@ public class PlayerController : MonoBehaviour
 
 	private bool _isGameOver = false;
 
+	private float _screenHeight;
+	private float _playerHeight;
+
 	void Awake()
 	{
 		_rb = GetComponent<Rigidbody2D>();
 	}
 
-	// Start is called once before the first execution of Update after the MonoBehaviour is created
 	void Start()
 	{
 		_isGameOver = false;
+
+		_playerHeight = GetComponent<Collider2D>().bounds.size.y / 2f;
+
+		_screenHeight = Camera.main.orthographicSize * 2f;
 	}
 
-	// Update is called once per frame
 	void Update()
 	{
 		if (!_isGameOver && Input.GetMouseButtonDown(0))
@@ -42,6 +47,17 @@ public class PlayerController : MonoBehaviour
 				_rb.AddForce(Vector2.up * _jumpForce, ForceMode2D.Impulse);
 				_jumpInputReceived = false;
 			}
+
+			if (transform.position.y > (_screenHeight / 2f) + _playerHeight)
+			{
+				transform.position = new Vector3(transform.position.x, -(_screenHeight / 2f) - _playerHeight, transform.position.z);
+			}
+
+			else if (transform.position.y < -(_screenHeight / 2f) - _playerHeight)
+			{
+
+				transform.position = new Vector3(transform.position.x, (_screenHeight / 2f) + _playerHeight, transform.position.z);
+			}
 		}
 		else
 		{
@@ -55,12 +71,19 @@ public class PlayerController : MonoBehaviour
 		{
 			Debug.Log("Game Over! Bir engele çarptýn!");
 			_isGameOver = true;
-			_rb.gravityScale = 1f;
+
 
 			if (GameManager.Instance != null)
 			{
 				GameManager.Instance.GameOver();
 			}
 		}
+	}
+
+	public void StopPlayerMovement()
+	{
+		_isGameOver = true;
+		_rb.linearVelocity = Vector2.zero;
+		_rb.gravityScale = 0f;
 	}
 }
