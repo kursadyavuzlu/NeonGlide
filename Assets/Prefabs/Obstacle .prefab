@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 6138715012016099904}
   - component: {fileID: 9018989040102394348}
   - component: {fileID: 998413757978822188}
-  - component: {fileID: -1371912809547760924}
   - component: {fileID: 7269882802206374463}
   m_Layer: 0
   m_Name: 'Obstacle '
@@ -164,20 +163,6 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 4
---- !u!114 &-1371912809547760924
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1694926832091808754}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 00fa97e0d616f2f4e94436f5b5877388, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _moveSpeed: 5
-  _destroyXPosition: -10
 --- !u!114 &7269882802206374463
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -190,3 +175,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d6e345cbbf0544d40a6249ebe3b041c4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _baseMoveSpeed: 5
+  _destroyXPosition: -10
