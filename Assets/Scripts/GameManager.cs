@@ -13,11 +13,22 @@ public class GameManager : MonoBehaviour
 	[SerializeField] private TextMeshProUGUI _finalScoreText;
 	[SerializeField] private TextMeshProUGUI _highScoreText;
 
-	private float _scoreFloat = 0f; // Skoru ondalýklý olarak tutmak için yeni deðiþken
-	private int _displayScore = 0; // UI'da gösterilecek tam sayý skor
+	private float _scoreFloat = 0f;
+	private int _displayScore = 0;
 	private const string HighScoreKey = "HighScore";
 
 	private PlayerController _playerController;
+
+	[Header("Audio Settings")]
+	[SerializeField] private AudioClip _gameOverSound;
+
+	private AudioSource _gameManagerAudioSource;
+
+	private int _currentScoreMultiplier = 1;
+	// --- Yeni EKLENEN KOD BAÞLANGICI ---
+	private float _originalTimeScale = 1f; // Oyunun orijinal zaman ölçeði
+										   // --- Yeni EKLENEN KOD SONU ---
+
 
 	private void Awake()
 	{
@@ -30,6 +41,12 @@ public class GameManager : MonoBehaviour
 		{
 			Instance = this;
 		}
+
+		_gameManagerAudioSource = GetComponent<AudioSource>();
+		if (_gameManagerAudioSource == null)
+		{
+			Debug.LogError("GameManager GameObject'inde AudioSource bileþeni bulunamadý! Lütfen bir tane eklediðinizden emin olun.");
+		}
 	}
 
 	void Start()
@@ -39,7 +56,11 @@ public class GameManager : MonoBehaviour
 			_gameOverPanel.SetActive(false);
 		}
 
+		// --- Burasý GÜNCELLENDÝ: Time.timeScale baþlangýçta 1f'e ayarlanmalý ---
 		Time.timeScale = 1f;
+		_originalTimeScale = 1f; // Orijinal zaman ölçeðini kaydet
+								 // --- GÜNCELLEME SONU ---
+
 
 		_playerController = FindAnyObjectByType<PlayerController>();
 		if (_playerController == null)
@@ -47,43 +68,34 @@ public class GameManager : MonoBehaviour
 			Debug.LogError("PlayerController script not found in the scene! Make sure your Player object has the PlayerController component.");
 		}
 
-		// Skorlarý sýfýrla ve UI'ý güncelle
 		_scoreFloat = 0f;
 		_displayScore = 0;
+		_currentScoreMultiplier = 1;
 		UpdateScoreUI();
 		LoadAndSetHighScores();
 	}
 
 	void Update()
 	{
-		// Debug.Log("GameManager Update() çalýþýyor."); // Test için eklediðimiz bu debug satýrýný kaldýrýyorum
-
 		if (Time.timeScale > 0)
 		{
-			// Skoru float olarak artýr (saniyede 10 birim)
-			_scoreFloat += Time.deltaTime * 10f;
+			_scoreFloat += Time.deltaTime * 10f * _currentScoreMultiplier;
 
-			// Float skordan tam sayý kýsmýný alarak gösterilecek skoru belirle
 			int newDisplayScore = Mathf.FloorToInt(_scoreFloat);
 
-			// Eðer gösterilecek skor deðiþtiyse, UI'ý güncelle
 			if (newDisplayScore != _displayScore)
 			{
 				_displayScore = newDisplayScore;
 				UpdateScoreUI();
 			}
 		}
-		// else
-		// {
-		//     Debug.Log("Time.timeScale is 0 or less: " + Time.timeScale); // Test için eklediðimiz bu debug satýrýný kaldýrýyorum
-		// }
 	}
 
 	private void UpdateScoreUI()
 	{
 		if (_scoreText != null)
 		{
-			_scoreText.text = "Score: " + _displayScore.ToString(); // _displayScore kullan
+			_scoreText.text = "Score: " + _displayScore.ToString() + (_currentScoreMultiplier > 1 ? " (x" + _currentScoreMultiplier + ")" : "");
 		}
 	}
 
@@ -100,25 +112,24 @@ public class GameManager : MonoBehaviour
 	{
 		if (Time.timeScale > 0)
 		{
-			Debug.Log("Game over! Final Score: " + _displayScore); // _displayScore kullan
+			Debug.Log("Game over! Final Score: " + _displayScore);
 
-			// Yüksek skoru kontrol et ve kaydet
 			int currentHighScore = PlayerPrefs.GetInt(HighScoreKey, 0);
-			if (_displayScore > currentHighScore) // _displayScore kullan
+			if (_displayScore > currentHighScore)
 			{
-				PlayerPrefs.SetInt(HighScoreKey, _displayScore); // _displayScore kullan
-				Debug.Log("New High Score: " + _displayScore); // _displayScore kullan
+				PlayerPrefs.SetInt(HighScoreKey, _displayScore);
+				Debug.Log("New High Score: " + _displayScore);
 			}
-			PlayerPrefs.Save(); // Deðiþiklikleri kaydet
+			PlayerPrefs.Save();
 
 			if (_gameOverPanel != null)
 			{
 				_gameOverPanel.SetActive(true);
 				if (_finalScoreText != null)
 				{
-					_finalScoreText.text = "Your Score: " + _displayScore.ToString(); // _displayScore kullan
+					_finalScoreText.text = "Your Score: " + _displayScore.ToString();
 				}
-				LoadAndSetHighScores(); // Oyun sonunda yüksek skoru tekrar göster (yeni yüksek skor güncellenmiþ olabilir)
+				LoadAndSetHighScores();
 			}
 
 			if (_playerController != null)
@@ -126,12 +137,58 @@ public class GameManager : MonoBehaviour
 				_playerController.StopPlayerMovement();
 			}
 
+			if (_gameManagerAudioSource != null && _gameOverSound != null)
+			{
+				_gameManagerAudioSource.PlayOneShot(_gameOverSound);
+			}
+
+			// Oyun bittiðinde zamaný sýfýrlayalým, ancak sesin çalmasýna izin vermek için sona býrakalým
 			Time.timeScale = 0f;
 		}
 	}
 
 	public void RestartGame()
 	{
+		Time.timeScale = 1f; // Sahneyi yeniden yüklemeden önce zaman ölçeðini sýfýrla
 		SceneManager.LoadScene(SceneManager.GetActiveScene().name);
 	}
+
+	public void SetScoreMultiplier(int multiplier)
+	{
+		_currentScoreMultiplier = multiplier;
+		Debug.Log("GameManager: Score multiplier set to x" + _currentScoreMultiplier);
+		UpdateScoreUI();
+	}
+
+	public void ResetScoreMultiplier()
+	{
+		_currentScoreMultiplier = 1;
+		Debug.Log("GameManager: Score multiplier reset to x1.");
+		UpdateScoreUI();
+	}
+
+	// --- Yeni EKLENEN KOD BAÞLANGICI ---
+
+	/// <summary>
+	/// Oyunun global zaman ölçeðini ayarlar.
+	/// </summary>
+	/// <param name="newTimeScale">Yeni zaman ölçeði deðeri (örn: 0.5f için %50 hýz).</param>
+	public void SetTimeScale(float newTimeScale)
+	{
+		// Mevcut zaman ölçeðini kaydet (eðer zaten yavaþlatýlmýþsa üst üste binmesin)
+		// Veya orijinal _originalTimeScale'i koru ve sadece yavaþlat
+		_originalTimeScale = Time.timeScale; // Mevcut Time.timeScale'i kaydet (eðer baþka bir þey deðiþtirdiyse)
+		Time.timeScale = newTimeScale;
+		Debug.Log("GameManager: Time scale set to " + newTimeScale);
+	}
+
+	/// <summary>
+	/// Oyunun zaman ölçeðini orijinal deðerine (1f) sýfýrlar.
+	/// </summary>
+	public void ResetTimeScale()
+	{
+		Time.timeScale = 1f; // Orijinal zaman ölçeðine döndür
+		Debug.Log("GameManager: Time scale reset to 1f.");
+	}
+	// --- Yeni EKLENEN KOD SONU ---
 }

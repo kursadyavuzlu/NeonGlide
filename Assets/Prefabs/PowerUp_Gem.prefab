@@ -188,7 +188,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6e599963c9c7e8047adedb592ee22cf3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _shieldChance: 30
-  _jumpBoostChance: 45
-  _controlGlitchChance: 25
+  _shieldChance: 0
+  _jumpBoostChance: 0
+  _speedBoostChance: 0
+  _scoreMultiplierChance: 0
+  _shrinkChance: 0
+  _timeSlowdownChance: 0
+  _clearAllObstaclesChance: 100
   _destroyDelay: 0.1
