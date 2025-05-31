@@ -1286,6 +1286,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _target: {fileID: 534355734}
   _offset: {x: 7, y: 0, z: -20}
+  _baseFollowSpeed: 5
+  _speedIncreaseRate: 0.1
+  _maxFollowSpeed: 20
+  _speedIncreaseInterval: 10
 --- !u!1 &534355729
 GameObject:
   m_ObjectHideFlags: 0
@@ -1374,7 +1378,7 @@ Transform:
   m_GameObject: {fileID: 534355729}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: -0.7071068, w: 0.7071068}
-  m_LocalPosition: {x: -11, y: 0, z: 0}
+  m_LocalPosition: {x: -9, y: 0, z: 0}
   m_LocalScale: {x: 4, y: 4, z: 4}
   m_ConstrainProportionsScale: 1
   m_Children:
@@ -4315,6 +4319,11 @@ MonoBehaviour:
   _spawnXOffsetFromCamera: 10
   _minSpawnTime: 1
   _maxSpawnTime: 2
+  _spawnTimeDecreaseRate: 0.05
+  _minAllowedSpawnTime: 0.5
+  _difficultyIncreaseInterval: 10
+  _obstacleSpeedIncreaseRate: 0.5
+  _maxAllowedObstacleSpeed: 15
   _obstacleMoveSpeed: 5
   _crossMoveSpeedRange: {x: -1, y: 1}
 --- !u!1 &1710353381

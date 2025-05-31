@@ -1,6 +1,5 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.Pool;
 
 public class ObstacleSpawner : MonoBehaviour
 {
@@ -10,6 +9,20 @@ public class ObstacleSpawner : MonoBehaviour
 
 	[SerializeField] private float _minSpawnTime = 1f;
 	[SerializeField] private float _maxSpawnTime = 2f;
+
+	[Header("Difficulty Progression")]
+	[SerializeField] private float _spawnTimeDecreaseRate = 0.05f;
+	[SerializeField] private float _minAllowedSpawnTime = 0.5f;
+	[SerializeField] private float _difficultyIncreaseInterval = 10f;
+
+	[SerializeField] private float _obstacleSpeedIncreaseRate = 0.5f;
+	[SerializeField] private float _maxAllowedObstacleSpeed = 15f;
+
+	private float _initialObstacleMoveSpeed;
+
+	private float _initialMinSpawnTime;
+	private float _initialMaxSpawnTime;
+	private float _nextDifficultyIncreaseTime;
 
 	[SerializeField] private float _obstacleMoveSpeed = 5f;
 	[SerializeField] private Vector2 _crossMoveSpeedRange = new Vector2(-1f, 1f);
@@ -25,13 +38,22 @@ public class ObstacleSpawner : MonoBehaviour
 			return;
 		}
 
-		_nextSpawnTime = Time.time + Random.Range(_minSpawnTime, _maxSpawnTime);
-
 		StartCoroutine(SpawnObstaclesCoroutine());
+
+		_initialMinSpawnTime = _minSpawnTime;
+		_initialMaxSpawnTime = _maxSpawnTime;
+		_nextDifficultyIncreaseTime = Time.time + _difficultyIncreaseInterval;
+
+		_initialObstacleMoveSpeed = _obstacleMoveSpeed;
 	}
 
 	void Update()
 	{
+		if (Time.time > _nextDifficultyIncreaseTime)
+		{
+			IncreaseDifficulty();
+			_nextDifficultyIncreaseTime = Time.time + _difficultyIncreaseInterval;
+		}
 	}
 
 	IEnumerator SpawnObstaclesCoroutine()
@@ -77,5 +99,15 @@ public class ObstacleSpawner : MonoBehaviour
 				Debug.LogWarning("ObstacleController not found on spawned obstacle: " + newObstacle.name + ". Make sure it's attached to the prefab.");
 			}
 		}
+	}
+
+	private void IncreaseDifficulty()
+	{
+		_minSpawnTime = Mathf.Max(_minAllowedSpawnTime, _minSpawnTime - _spawnTimeDecreaseRate);
+		_maxSpawnTime = Mathf.Max(_minAllowedSpawnTime, _maxSpawnTime - _spawnTimeDecreaseRate);
+
+		_obstacleMoveSpeed = Mathf.Min(_maxAllowedObstacleSpeed, _obstacleMoveSpeed + _obstacleSpeedIncreaseRate);
+
+		Debug.Log($"Difficulty Increased! New Spawn Time Range: {_minSpawnTime:F2}s - {_maxSpawnTime:F2}s, New Obstacle Speed: {_obstacleMoveSpeed:F2}");
 	}
 }
