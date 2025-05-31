@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 8620157149738822983}
   - component: {fileID: 5787034210775415198}
   - component: {fileID: 8649623854866524297}
+  - component: {fileID: -7319426929177320345}
   m_Layer: 0
   m_Name: PowerUp_Gem
   m_TagString: PowerUp
@@ -193,6 +194,18 @@ MonoBehaviour:
   _speedBoostChance: 15
   _scoreMultiplierChance: 15
   _shrinkChance: 15
-  _timeSlowdownChance: 15
-  _clearAllObstaclesChance: 10
+  _timeSlowdownChance: 10
+  _clearAllObstaclesChance: 0
   _destroyDelay: 0.1
+--- !u!114 &-7319426929177320345
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4302138879024614527}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f18130d62ceffac48912bb82b8137bd7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

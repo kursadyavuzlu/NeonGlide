@@ -2,10 +2,10 @@ using UnityEngine;
 
 public class BackgroundScroller : MonoBehaviour
 {
-	[SerializeField] private float _scrollSpeed = 1f; // Arka planýn kaydýrma hýzý
+	[SerializeField] private float _scrollSpeed = 1f;
 
-	private float _spriteWorldWidth; // Sprite'ýn dünya birimlerindeki gerçek geniþliði
-	private Camera _mainCamera; // Ana kameraya referans
+	private float _spriteWorldWidth;
+	private Camera _mainCamera;
 
 	void Start()
 	{
@@ -21,7 +21,7 @@ public class BackgroundScroller : MonoBehaviour
 			return;
 		}
 
-		_mainCamera = Camera.main; // Ana kamerayý al
+		_mainCamera = Camera.main;
 		if (_mainCamera == null)
 		{
 			Debug.LogError("Ana Kamera bulunamadý! 'MainCamera' tag'ine sahip bir kamera olduðundan emin olun.");
@@ -32,21 +32,15 @@ public class BackgroundScroller : MonoBehaviour
 
 	void Update()
 	{
-		// Arka planý sola doðru kaydýr
 		transform.Translate(Vector3.left * _scrollSpeed * Time.deltaTime);
 
-		// Kameranýn sol kenarýnýn dünya koordinatýndaki X pozisyonunu hesapla
 		float cameraLeftEdgeX = _mainCamera.transform.position.x - (_mainCamera.orthographicSize * _mainCamera.aspect);
 
-		// Bu arka planýn sað kenarýnýn dünya koordinatýndaki X pozisyonunu hesapla
 		float backgroundRightEdgeX = transform.position.x + (_spriteWorldWidth / 2f);
 
-		// Eðer bu arka planýn sað kenarý, kameranýn sol kenarýndan daha sola geçtiyse
-		// (yani ekranýn dýþýna tamamen çýktýysa)
 		if (backgroundRightEdgeX < cameraLeftEdgeX)
 		{
-			// Bu arka planý, diðer arka planýn bittiði yerin saðýna taþý
-			// Yani, mevcut pozisyonundan iki sprite geniþliði kadar ileri sar
+
 			transform.position = new Vector3(transform.position.x + (_spriteWorldWidth * 2f), transform.position.y, transform.position.z);
 		}
 	}

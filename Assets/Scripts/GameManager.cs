@@ -8,10 +8,10 @@ public class GameManager : MonoBehaviour
 
 	[Header("UI References")]
 	[SerializeField] private GameObject _gameOverPanel;
-
 	[SerializeField] private TextMeshProUGUI _scoreText;
 	[SerializeField] private TextMeshProUGUI _finalScoreText;
 	[SerializeField] private TextMeshProUGUI _highScoreText;
+	[SerializeField] private GameObject _pauseMenuPanel;
 
 	private float _scoreFloat = 0f;
 	private int _displayScore = 0;
@@ -19,23 +19,21 @@ public class GameManager : MonoBehaviour
 
 	private PlayerController _playerController;
 
+	[Header("Game State")]
+	private bool _isGamePaused = false;
+
 	[Header("Audio Settings")]
 	[SerializeField] private AudioClip _gameOverSound;
-
 	private AudioSource _gameManagerAudioSource;
 
 	private int _currentScoreMultiplier = 1;
-	// --- Yeni EKLENEN KOD BAÞLANGICI ---
-	private float _originalTimeScale = 1f; // Oyunun orijinal zaman ölçeði
-										   // --- Yeni EKLENEN KOD SONU ---
-
+	private float _originalTimeScale = 1f;
 
 	private void Awake()
 	{
 		if (Instance != null && Instance != this)
 		{
 			Destroy(gameObject);
-			return;
 		}
 		else
 		{
@@ -55,17 +53,18 @@ public class GameManager : MonoBehaviour
 		{
 			_gameOverPanel.SetActive(false);
 		}
+		if (_pauseMenuPanel != null)
+		{
+			_pauseMenuPanel.SetActive(false);
+		}
 
-		// --- Burasý GÜNCELLENDÝ: Time.timeScale baþlangýçta 1f'e ayarlanmalý ---
 		Time.timeScale = 1f;
-		_originalTimeScale = 1f; // Orijinal zaman ölçeðini kaydet
-								 // --- GÜNCELLEME SONU ---
-
+		_originalTimeScale = 1f;
 
 		_playerController = FindAnyObjectByType<PlayerController>();
 		if (_playerController == null)
 		{
-			Debug.LogError("PlayerController script not found in the scene! Make sure your Player object has the PlayerController component.");
+			Debug.LogError("GameManager: PlayerController script not found in the scene! Make sure your Player object has the PlayerController component.");
 		}
 
 		_scoreFloat = 0f;
@@ -77,7 +76,7 @@ public class GameManager : MonoBehaviour
 
 	void Update()
 	{
-		if (Time.timeScale > 0)
+		if (Time.timeScale > 0f && !_isGamePaused)
 		{
 			_scoreFloat += Time.deltaTime * 10f * _currentScoreMultiplier;
 
@@ -88,6 +87,11 @@ public class GameManager : MonoBehaviour
 				_displayScore = newDisplayScore;
 				UpdateScoreUI();
 			}
+		}
+
+		if (Input.GetKeyDown(KeyCode.Escape))
+		{
+			TogglePause();
 		}
 	}
 
@@ -110,47 +114,84 @@ public class GameManager : MonoBehaviour
 
 	public void GameOver()
 	{
-		if (Time.timeScale > 0)
+		if (Time.timeScale == 0f && _gameOverPanel != null && _gameOverPanel.activeSelf) return;
+
+		Debug.Log("Game over! Final Score: " + _displayScore);
+
+		int currentHighScore = PlayerPrefs.GetInt(HighScoreKey, 0);
+		if (_displayScore > currentHighScore)
 		{
-			Debug.Log("Game over! Final Score: " + _displayScore);
-
-			int currentHighScore = PlayerPrefs.GetInt(HighScoreKey, 0);
-			if (_displayScore > currentHighScore)
-			{
-				PlayerPrefs.SetInt(HighScoreKey, _displayScore);
-				Debug.Log("New High Score: " + _displayScore);
-			}
-			PlayerPrefs.Save();
-
-			if (_gameOverPanel != null)
-			{
-				_gameOverPanel.SetActive(true);
-				if (_finalScoreText != null)
-				{
-					_finalScoreText.text = "Your Score: " + _displayScore.ToString();
-				}
-				LoadAndSetHighScores();
-			}
-
-			if (_playerController != null)
-			{
-				_playerController.StopPlayerMovement();
-			}
-
-			if (_gameManagerAudioSource != null && _gameOverSound != null)
-			{
-				_gameManagerAudioSource.PlayOneShot(_gameOverSound);
-			}
-
-			// Oyun bittiðinde zamaný sýfýrlayalým, ancak sesin çalmasýna izin vermek için sona býrakalým
-			Time.timeScale = 0f;
+			PlayerPrefs.SetInt(HighScoreKey, _displayScore);
+			Debug.Log("New High Score: " + _displayScore);
 		}
+		PlayerPrefs.Save();
+
+		if (_gameOverPanel != null)
+		{
+			_gameOverPanel.SetActive(true);
+			if (_finalScoreText != null)
+			{
+				_finalScoreText.text = "Your Score: " + _displayScore.ToString();
+			}
+			LoadAndSetHighScores();
+		}
+
+		if (_playerController != null)
+		{
+			_playerController.StopPlayerMovement();
+		}
+
+		if (_gameManagerAudioSource != null && _gameOverSound != null)
+		{
+			_gameManagerAudioSource.PlayOneShot(_gameOverSound);
+		}
+		Time.timeScale = 0f;
 	}
 
 	public void RestartGame()
 	{
-		Time.timeScale = 1f; // Sahneyi yeniden yüklemeden önce zaman ölçeðini sýfýrla
+		_isGamePaused = false;
+		Time.timeScale = 1f;
 		SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+	}
+
+	public void TogglePause()
+	{
+		if (Time.timeScale != 0f || _isGamePaused)
+		{
+			_isGamePaused = !_isGamePaused;
+
+			if (_isGamePaused)
+			{
+				Time.timeScale = 0f;
+				if (_pauseMenuPanel != null)
+				{
+					_pauseMenuPanel.SetActive(true);
+				}
+				Debug.Log("Oyun Duraklatýldý.");
+			}
+			else
+			{
+				Time.timeScale = 1f;
+				if (_pauseMenuPanel != null)
+				{
+					_pauseMenuPanel.SetActive(false);
+				}
+				Debug.Log("Oyun Devam Ediyor.");
+
+				if (_playerController != null)
+				{
+					_playerController.SetLastUnpausedTime(Time.timeSinceLevelLoad);
+				}
+			}
+		}
+	}
+
+	public void ReturnToMainMenu()
+	{
+		_isGamePaused = false;
+		Time.timeScale = 1f;
+		SceneManager.LoadScene("MainMenu");
 	}
 
 	public void SetScoreMultiplier(int multiplier)
@@ -167,28 +208,22 @@ public class GameManager : MonoBehaviour
 		UpdateScoreUI();
 	}
 
-	// --- Yeni EKLENEN KOD BAÞLANGICI ---
-
-	/// <summary>
-	/// Oyunun global zaman ölçeðini ayarlar.
-	/// </summary>
-	/// <param name="newTimeScale">Yeni zaman ölçeði deðeri (örn: 0.5f için %50 hýz).</param>
 	public void SetTimeScale(float newTimeScale)
 	{
-		// Mevcut zaman ölçeðini kaydet (eðer zaten yavaþlatýlmýþsa üst üste binmesin)
-		// Veya orijinal _originalTimeScale'i koru ve sadece yavaþlat
-		_originalTimeScale = Time.timeScale; // Mevcut Time.timeScale'i kaydet (eðer baþka bir þey deðiþtirdiyse)
-		Time.timeScale = newTimeScale;
-		Debug.Log("GameManager: Time scale set to " + newTimeScale);
+		if (!_isGamePaused && Time.timeScale != 0f)
+		{
+			_originalTimeScale = Time.timeScale;
+			Time.timeScale = newTimeScale;
+			Debug.Log("GameManager: Time scale set to " + newTimeScale);
+		}
 	}
 
-	/// <summary>
-	/// Oyunun zaman ölçeðini orijinal deðerine (1f) sýfýrlar.
-	/// </summary>
 	public void ResetTimeScale()
 	{
-		Time.timeScale = 1f; // Orijinal zaman ölçeðine döndür
-		Debug.Log("GameManager: Time scale reset to 1f.");
+		if (!_isGamePaused && Time.timeScale != 0f)
+		{
+			Time.timeScale = _originalTimeScale;
+			Debug.Log("GameManager: Time scale reset to original (" + _originalTimeScale + ").");
+		}
 	}
-	// --- Yeni EKLENEN KOD SONU ---
 }

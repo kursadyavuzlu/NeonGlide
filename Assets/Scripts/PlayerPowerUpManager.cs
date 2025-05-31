@@ -6,57 +6,38 @@ public class PlayerPowerUpManager : MonoBehaviour
 {
 	private PlayerController _playerController;
 
-	// --- YENÝ: IPowerUpEffect referanslarý ---
-	private IPowerUpEffect _shieldPowerUpEffect;
-	private JumpBoostPowerUp _jumpBoostPowerUpEffect;
-	private SpeedBoostPowerUp _speedBoostPowerUpEffect;
-	private IPowerUpEffect _scoreMultiplierPowerUpEffect;
-	private ShrinkPowerUp _shrinkPowerUpEffect;
-	private IPowerUpEffect _timeSlowdownPowerUpEffect;
-	private IPowerUpEffect _clearAllObstaclesPowerUpEffect;
+	private Dictionary<PowerUpType, IPowerUpEffect> _powerUpEffects = new Dictionary<PowerUpType, IPowerUpEffect>();
+
+	private JumpBoostPowerUp _jumpBoostPowerUpRef;
+	private SpeedBoostPowerUp _speedBoostPowerUpRef;
+	private ShrinkPowerUp _shrinkPowerUpRef;
+
 
 	void Awake()
 	{
-		_shieldPowerUpEffect = GetComponentInChildren<ShieldPowerUp>();
-		if (_shieldPowerUpEffect == null)
-		{
-			Debug.LogError("PlayerPowerUpManager: ShieldPowerUp bileþeni bulunamadý! Lütfen Player altýnda '_ShieldPowerUpLogic' GameObject'ine ekleyin.");
-		}
+		InitializePowerUp<ShieldPowerUp>(PowerUpType.Shield);
+		InitializePowerUp<JumpBoostPowerUp>(PowerUpType.JumpBoost);
+		InitializePowerUp<SpeedBoostPowerUp>(PowerUpType.SpeedBoost);
+		InitializePowerUp<ScoreMultiplierPowerUp>(PowerUpType.ScoreMultiplier);
+		InitializePowerUp<ShrinkPowerUp>(PowerUpType.Shrink);
+		InitializePowerUp<TimeSlowdownPowerUp>(PowerUpType.TimeSlowdown);
+		InitializePowerUp<ClearAllObstaclesPowerUp>(PowerUpType.ClearAllObstacles);
 
-		_jumpBoostPowerUpEffect = GetComponentInChildren<JumpBoostPowerUp>();
-		if (_jumpBoostPowerUpEffect == null)
-		{
-			Debug.LogError("PlayerPowerUpManager: JumpBoostPowerUp bileþeni bulunamadý! Lütfen Player altýnda '_JumpBoostPowerUpLogic' GameObject'ine ekleyin.");
-		}
+		_jumpBoostPowerUpRef = _powerUpEffects[PowerUpType.JumpBoost] as JumpBoostPowerUp;
+		_speedBoostPowerUpRef = _powerUpEffects[PowerUpType.SpeedBoost] as SpeedBoostPowerUp;
+		_shrinkPowerUpRef = _powerUpEffects[PowerUpType.Shrink] as ShrinkPowerUp;
+	}
 
-		_speedBoostPowerUpEffect = GetComponentInChildren<SpeedBoostPowerUp>();
-		if (_speedBoostPowerUpEffect == null)
+	private void InitializePowerUp<T>(PowerUpType type) where T : MonoBehaviour, IPowerUpEffect
+	{
+		T powerUp = GetComponentInChildren<T>();
+		if (powerUp != null)
 		{
-			Debug.LogError("PlayerPowerUpManager: SpeedBoostPowerUp bileþeni bulunamadý! Lütfen Player altýnda '_SpeedBoostPowerUpLogic' GameObject'ine ekleyin.");
+			_powerUpEffects.Add(type, powerUp);
 		}
-
-		_scoreMultiplierPowerUpEffect = GetComponentInChildren<ScoreMultiplierPowerUp>();
-		if (_scoreMultiplierPowerUpEffect == null)
+		else
 		{
-			Debug.LogError("PlayerPowerUpManager: ScoreMultiplierPowerUp bileþeni bulunamadý! Lütfen Player altýnda '_ScoreMultiplierPowerUpLogic' GameObject'ine ekleyin.");
-		}
-
-		_shrinkPowerUpEffect = GetComponentInChildren<ShrinkPowerUp>();
-		if (_shrinkPowerUpEffect == null)
-		{
-			Debug.LogError("PlayerPowerUpManager: ShrinkPowerUp bileþeni bulunamadý! Lütfen Player altýnda '_ShrinkPowerUpLogic' GameObject'ine ekleyin.");
-		}
-
-		_timeSlowdownPowerUpEffect = GetComponentInChildren<TimeSlowdownPowerUp>();
-		if (_timeSlowdownPowerUpEffect == null)
-		{
-			Debug.LogError("PlayerPowerUpManager: TimeSlowdownPowerUp bileþeni bulunamadý! Lütfen Player altýnda '_TimeSlowdownPowerUpLogic' GameObject'ine ekleyin.");
-		}
-
-		_clearAllObstaclesPowerUpEffect = GetComponentInChildren<ClearAllObstaclesPowerUp>();
-		if (_clearAllObstaclesPowerUpEffect == null)
-		{
-			Debug.LogError("PlayerPowerUpManager: ClearAllObstaclesPowerUp bileþeni bulunamadý! Lütfen Player altýnda '_ClearAllObstaclesPowerUpLogic' GameObject'ine ekleyin.");
+			Debug.LogError($"PlayerPowerUpManager: {typeof(T).Name} bileþeni bulunamadý! Lütfen Player altýnda ilgili GameObject'ine ekleyin.");
 		}
 	}
 
@@ -68,138 +49,89 @@ public class PlayerPowerUpManager : MonoBehaviour
 
 	void Update()
 	{
-		// Tüm Power-Up mantýðý kendi scriptlerine taþýndýðý için burasý boþ.
+
 	}
 
 	public void ActivatePowerUp(PowerUpType type)
 	{
 		Debug.Log($"PlayerPowerUpManager: {type} Power-Up'ý aktif ediliyor.");
 
-		switch (type)
+		if (_powerUpEffects.TryGetValue(type, out IPowerUpEffect powerUpEffect))
 		{
-			case PowerUpType.Shield:
-				if (_shieldPowerUpEffect != null)
-				{
-					_shieldPowerUpEffect.Activate(_playerController, this);
-				}
-				break;
-			case PowerUpType.JumpBoost:
-				if (_jumpBoostPowerUpEffect != null)
-				{
-					_jumpBoostPowerUpEffect.Activate(_playerController, this);
-				}
-				break;
-			case PowerUpType.SpeedBoost:
-				if (_speedBoostPowerUpEffect != null)
-				{
-					_speedBoostPowerUpEffect.Activate(_playerController, this);
-				}
-				break;
-			case PowerUpType.ScoreMultiplier:
-				if (_scoreMultiplierPowerUpEffect != null)
-				{
-					_scoreMultiplierPowerUpEffect.Activate(_playerController, this);
-				}
-				break;
-			case PowerUpType.Shrink:
-				if (_shrinkPowerUpEffect != null)
-				{
-					_shrinkPowerUpEffect.Activate(_playerController, this);
-				}
-				break;
-			case PowerUpType.TimeSlowdown:
-				if (_timeSlowdownPowerUpEffect != null)
-				{
-					_timeSlowdownPowerUpEffect.Activate(_playerController, this);
-				}
-				break;
-			case PowerUpType.ClearAllObstacles:
-				if (_clearAllObstaclesPowerUpEffect != null)
-				{
-					_clearAllObstaclesPowerUpEffect.Activate(_playerController, this);
-				}
-				break;
+			powerUpEffect.Activate(_playerController, this);
+		}
+		else
+		{
+			Debug.LogWarning($"PlayerPowerUpManager: {type} türünde Power-Up efekti bulunamadý veya atanmadý.");
 		}
 	}
 
-	// --- PlayerController'ýn sorgulayabilmesi için getter metodlarý ---
-	public bool GetIsShieldActive()
+	public bool IsPowerUpActive(PowerUpType type)
 	{
-		if (_shieldPowerUpEffect != null)
+		if (_powerUpEffects.TryGetValue(type, out IPowerUpEffect powerUpEffect))
 		{
-			return _shieldPowerUpEffect.IsActive();
+			return powerUpEffect.IsActive();
 		}
 		return false;
+	}
+
+	//public T GetPowerUpValue<T>(PowerUpType type) where T : struct
+	//{
+	//	Debug.LogWarning("PlayerPowerUpManager: GetPowerUpValue generik metodu þu anki Power-Up arayüzü ile uyumlu deðildir. " +
+	//					 "Lütfen GetJumpBoostMultiplier gibi spesifik metotlarý kullanýn veya IPowerUpEffect'e GetValue() ekleyin.");
+	//	return default(T); // Varsayýlan deðeri döndür
+	//}
+
+	public bool GetIsShieldActive()
+	{
+		return IsPowerUpActive(PowerUpType.Shield);
 	}
 
 	public bool GetIsJumpBoostActive()
 	{
-		if (_jumpBoostPowerUpEffect != null)
-		{
-			return _jumpBoostPowerUpEffect.IsActive();
-		}
-		return false;
+		return IsPowerUpActive(PowerUpType.JumpBoost);
 	}
 
 	public float GetJumpBoostMultiplier()
 	{
-		if (_jumpBoostPowerUpEffect != null)
+		if (_jumpBoostPowerUpRef != null)
 		{
-			return _jumpBoostPowerUpEffect.GetJumpBoostMultiplier();
+			return _jumpBoostPowerUpRef.GetJumpBoostMultiplier();
 		}
 		return 1f;
 	}
 
 	public bool GetIsSpeedBoostActive()
 	{
-		if (_speedBoostPowerUpEffect != null)
-		{
-			return _speedBoostPowerUpEffect.IsActive();
-		}
-		return false;
+		return IsPowerUpActive(PowerUpType.SpeedBoost);
 	}
+
 	public float GetSpeedBoostMultiplier()
 	{
-		if (_speedBoostPowerUpEffect != null)
+		if (_speedBoostPowerUpRef != null)
 		{
-			return _speedBoostPowerUpEffect.GetSpeedBoostMultiplier();
+			return _speedBoostPowerUpRef.GetSpeedBoostMultiplier();
 		}
 		return 1f;
 	}
 
 	public bool GetIsScoreMultiplierActive()
 	{
-		if (_scoreMultiplierPowerUpEffect != null)
-		{
-			return _scoreMultiplierPowerUpEffect.IsActive();
-		}
-		return false;
+		return IsPowerUpActive(PowerUpType.ScoreMultiplier);
 	}
 
 	public bool GetIsShrinkActive()
 	{
-		if (_shrinkPowerUpEffect != null)
-		{
-			return _shrinkPowerUpEffect.IsActive();
-		}
-		return false;
+		return IsPowerUpActive(PowerUpType.Shrink);
 	}
 
 	public bool GetIsTimeSlowdownActive()
 	{
-		if (_timeSlowdownPowerUpEffect != null)
-		{
-			return _timeSlowdownPowerUpEffect.IsActive();
-		}
-		return false;
+		return IsPowerUpActive(PowerUpType.TimeSlowdown);
 	}
 
 	public bool GetIsClearAllObstaclesActive()
 	{
-		if (_clearAllObstaclesPowerUpEffect != null)
-		{
-			return _clearAllObstaclesPowerUpEffect.IsActive();
-		}
-		return false;
+		return IsPowerUpActive(PowerUpType.ClearAllObstacles);
 	}
 }

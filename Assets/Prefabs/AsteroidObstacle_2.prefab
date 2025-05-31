@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 873284848314897034}
   - component: {fileID: 3190503088198356615}
   - component: {fileID: 7097869975165055994}
+  - component: {fileID: -1454005779471490209}
   m_Layer: 0
   m_Name: AsteroidObstacle_2
   m_TagString: Obstacle
@@ -190,3 +191,15 @@ PolygonCollider2D:
       - {x: 0.16, y: -0.074999996}
       - {x: 0.31, y: -0.114999995}
   m_UseDelaunayMesh: 0
+--- !u!114 &-1454005779471490209
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5036796861009811647}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f18130d62ceffac48912bb82b8137bd7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
